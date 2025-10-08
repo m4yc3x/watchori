@@ -26,36 +26,36 @@ export default new class AuthAggregator {
   syncSettings = persisted('syncSettings', { al: true, local: true, kitsu: true, mal: true })
   // AUTH
 
-  anilist () {
+  anilist() {
     return !!client.client.viewer.value?.viewer?.id
   }
 
-  kitsu () {
+  kitsu() {
     return !!kitsu.id()
   }
 
-  mal () {
+  mal() {
     return !!mal.id()
   }
 
-  checkAuth () {
+  checkAuth() {
     return this.anilist() || this.kitsu() || this.mal()
   }
 
-  id () {
+  id() {
     if (this.anilist()) return client.client.viewer.value!.viewer?.id
     if (this.kitsu()) return kitsu.id()
 
     return -1
   }
 
-  profile (): ResultOf<typeof UserFrag> | undefined {
+  profile(): ResultOf<typeof UserFrag> | undefined {
     if (this.anilist()) return client.client.viewer.value?.viewer ?? undefined
     if (this.kitsu()) return kitsu.profile()
     if (this.mal()) return mal.profile()
   }
 
-  mediaListEntry (media: Pick<Media, 'mediaListEntry' | 'id'>) {
+  mediaListEntry(media: Pick<Media, 'mediaListEntry' | 'id'>) {
     if (this.anilist()) return media.mediaListEntry
     if (this.kitsu()) return kitsu.userlist.value[media.id]
     if (this.mal()) return mal.userlist.value[media.id]
@@ -63,7 +63,7 @@ export default new class AuthAggregator {
     return local.get(media.id)?.mediaListEntry
   }
 
-  isFavourite (media: Pick<Media, 'isFavourite' | 'id'>) {
+  isFavourite(media: Pick<Media, 'isFavourite' | 'id'>) {
     if (this.anilist()) return media.isFavourite
     if (this.kitsu()) return kitsu.isFav(media.id)
 
@@ -72,7 +72,7 @@ export default new class AuthAggregator {
 
   // QUERIES/MUTATIONS
 
-  schedule (onList: boolean | null = true) {
+  schedule(onList: boolean | null = true) {
     if (this.anilist()) return client.schedule(undefined, onList)
     if (this.kitsu()) return kitsu.schedule(onList)
     if (this.mal()) return mal.schedule(onList)
@@ -80,7 +80,7 @@ export default new class AuthAggregator {
     return local.schedule(onList)
   }
 
-  toggleFav (id: number) {
+  toggleFav(id: number) {
     return Promise.allSettled([
       this.anilist() && client.toggleFav(id),
       this.kitsu() && kitsu.toggleFav(id),
@@ -88,7 +88,7 @@ export default new class AuthAggregator {
     ])
   }
 
-  following (id: number) {
+  following(id: number) {
     if (this.anilist()) return client.following(id)
     if (this.kitsu()) return kitsu.following(id)
     return null
@@ -115,7 +115,7 @@ export default new class AuthAggregator {
     return null
   })
 
-  async watch (outdated: Media, progress: number) {
+  async watch(outdated: Media, progress: number) {
     const media = (await client.single(outdated.id)).data?.Media ?? outdated
     const totalEps = episodes(media) ?? 1 // episodes or movie which is single episode
     if (totalEps < progress) return // woah, bad data from resolver?!
@@ -134,12 +134,12 @@ export default new class AuthAggregator {
         ? 'COMPLETED'
         : mediaList?.status === 'REPEATING' ? 'REPEATING' : 'CURRENT'
 
-    const lists = (mediaList?.customLists as Array<{enabled: boolean, name: string}> | undefined)?.filter(({ enabled }) => enabled).map(({ name }) => name) ?? []
+    const lists = (mediaList?.customLists as Array<{ enabled: boolean, name: string }> | undefined)?.filter(({ enabled }) => enabled).map(({ name }) => name) ?? []
 
     return await this.entry({ id: media.id, progress, status, lists })
   }
 
-  delete (media: Media) {
+  delete(media: Media) {
     const sync = get(this.syncSettings)
 
     return Promise.allSettled([
@@ -150,11 +150,11 @@ export default new class AuthAggregator {
     ])
   }
 
-  entry (variables: VariablesOf<typeof Entry>) {
+  entry(variables: VariablesOf<typeof Entry>) {
     const sync = get(this.syncSettings)
     variables.lists ??= []
-    if (!variables.lists.includes('Watched using Hayase')) {
-      variables.lists.push('Watched using Hayase')
+    if (!variables.lists.includes('Watched using Watchori')) {
+      variables.lists.push('Watched using Watchori')
     }
 
     return Promise.allSettled([
@@ -165,7 +165,7 @@ export default new class AuthAggregator {
     ])
   }
 
-  async setInitialState (media: Media, episode: number) {
+  async setInitialState(media: Media, episode: number) {
     if (episode !== 1) return
     const mediaList = this.mediaListEntry(media)
 
@@ -173,7 +173,7 @@ export default new class AuthAggregator {
 
     if (['COMPLETED', 'PLANNING', 'PAUSED'].includes(mediaList.status ?? '')) {
       const status = mediaList.status === 'COMPLETED' ? 'REPEATING' : 'CURRENT'
-      const lists = (mediaList.customLists as Array<{enabled: boolean, name: string}> | undefined)?.filter(({ enabled }) => enabled).map(({ name }) => name) ?? []
+      const lists = (mediaList.customLists as Array<{ enabled: boolean, name: string }> | undefined)?.filter(({ enabled }) => enabled).map(({ name }) => name) ?? []
 
       return await this.entry({ id: media.id, progress: 0, status, lists })
     }

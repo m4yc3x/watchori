@@ -60,7 +60,7 @@ const jsurl = (url: string) => {
   throw new Error('Invalid URL')
 }
 
-const safejson = async <T> (url: string): Promise<T | null> => {
+const safejson = async <T>(url: string): Promise<T | null> => {
   try {
     const res = await fetch(jsonurl(url))
     return await res.json()
@@ -82,7 +82,7 @@ export const storage = new class Storage {
   modules!: Promise<Record<string, string>>
   workers: Record<string, Remote<typeof extensionLoader>> = {}
 
-  constructor () {
+  constructor() {
     saved.subscribe(async value => {
       debug('saved extensions changed', value)
       this.modules = this.load(value)
@@ -91,7 +91,7 @@ export const storage = new class Storage {
     })
   }
 
-  async reload () {
+  async reload() {
     debug('reloading extensions')
     for (const worker of Object.values(this.workers)) {
       worker[releaseProxy]()
@@ -100,7 +100,7 @@ export const storage = new class Storage {
     this.modules = this.load(get(saved))
   }
 
-  async delete (id: string) {
+  async delete(id: string) {
     debug('deleting extension', id)
     if (id in this.workers) this.workers[id]![releaseProxy]()
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -113,12 +113,12 @@ export const storage = new class Storage {
     })
   }
 
-  async import (url: string) {
+  async import(url: string) {
     debug('importing extension from', url)
     const config = await safejson<ExtensionConfig[]>(url)
-    if (!config) throw new Error('Make sure the link you provided is a valid JSON config for Hayase', { cause: 'Invalid extension URI' })
+    if (!config) throw new Error('Make sure the link you provided is a valid JSON config for Watchori', { cause: 'Invalid extension URI' })
     for (const c of config) {
-      if (!this._validateConfig(c)) throw new Error('Make sure the link you provided is a valid extension config for Hayase', { cause: 'Invalid extension config' })
+      if (!this._validateConfig(c)) throw new Error('Make sure the link you provided is a valid extension config for Watchori', { cause: 'Invalid extension config' })
     }
     debug('imported config', config)
     for (const c of config) {
@@ -129,7 +129,7 @@ export const storage = new class Storage {
     }
   }
 
-  async load (config: Record<string, ExtensionConfig>) {
+  async load(config: Record<string, ExtensionConfig>) {
     const ids = Object.keys(config)
     const values = await getMany<string>(ids)
 
@@ -178,7 +178,7 @@ export const storage = new class Storage {
     return modules
   }
 
-  async update (config: Record<string, ExtensionConfig>) {
+  async update(config: Record<string, ExtensionConfig>) {
     const ids = Object.keys(config)
     const configs = Object.values(config)
     debug('updating extensions', ids)
@@ -204,7 +204,7 @@ export const storage = new class Storage {
     }
   }
 
-  _validateConfig (config: Partial<ExtensionConfig> | null): boolean {
+  _validateConfig(config: Partial<ExtensionConfig> | null): boolean {
     if (!config) return false
     const properties: Array<keyof ExtensionConfig> = ['name', 'version', 'id', 'type', 'accuracy', 'icon', 'update', 'code']
 

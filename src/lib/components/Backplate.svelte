@@ -65,7 +65,7 @@
         <div>
           <div class='bg-striped'>
             <div class='text-[24rem] tracking-wide animate-marquee bg-black mix-blend-multiply'>
-              HAYASE.06&nbsp;
+              WATCHORI&nbsp;
             </div>
           </div>
           <div class='bg-striped-muted'>

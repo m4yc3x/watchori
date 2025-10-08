@@ -40,7 +40,7 @@
 
   function share () {
     native.share({
-      title: `Watch on Hayase - ${media.title?.romaji ?? ''}`,
+      title: `Watch on Watchori - ${media.title?.romaji ?? ''}`,
       text: desc(media),
       url: `https://hayas.ee/anime/${media.id}`
     })

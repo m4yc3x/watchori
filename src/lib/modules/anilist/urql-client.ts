@@ -25,7 +25,7 @@ interface ViewerData { viewer: ResultOf<typeof Viewer>['Viewer'], token: string,
 class FetchError extends Error {
   res
 
-  constructor (res: Response, message?: string, opts?: ErrorOptions) {
+  constructor(res: Response, message?: string, opts?: ErrorOptions) {
     super(message, opts)
     this.res = res
   }
@@ -66,7 +66,7 @@ export default new class URQLClient extends Client {
     return res
   })
 
-  async token () {
+  async token() {
     debug('Requesting Anilist token')
     const res = await native.authAL(`https://anilist.co/api/v2/oauth/authorize?client_id=${dev ? 26159 : 3461}&response_type=token`)
     const token = res.access_token
@@ -75,7 +75,7 @@ export default new class URQLClient extends Client {
     return { token, expires }
   }
 
-  async auth (oauth = this.token()) {
+  async auth(oauth = this.token()) {
     debug('Authenticating Anilist')
     const { token, expires } = await oauth
     const viewerRes = await this.query(Viewer, {}, { fetchOptions: { headers: { Authorization: `Bearer ${token}` } } })
@@ -86,19 +86,19 @@ export default new class URQLClient extends Client {
     debug('Anilist viewer data', this.viewer.value.viewer)
 
     const lists = viewerRes.data.Viewer.mediaListOptions?.animeList?.customLists ?? []
-    if (!lists.includes('Watched using Hayase')) {
-      await this.mutation(CustomLists, { lists: [...lists, 'Watched using Hayase'] })
+    if (!lists.includes('Watched using Watchori')) {
+      await this.mutation(CustomLists, { lists: [...lists, 'Watched using Watchori'] })
     }
   }
 
-  async logout () {
+  async logout() {
     debug('Logging out from Anilist')
     await storage.clear()
     localStorage.removeItem('ALViewer')
     native.restart()
   }
 
-  setRateLimit (sec: number) {
+  setRateLimit(sec: number) {
     debug('Setting rate limit', sec)
     toast.error('Anilist Error', { description: 'Rate limit exceeded, retrying in ' + Math.round(sec / 1000) + ' seconds.' })
     this.rateLimitPromise ??= sleep(sec).then(() => { this.rateLimitPromise = null })
@@ -107,7 +107,7 @@ export default new class URQLClient extends Client {
 
   viewer = _writable<ViewerData | undefined>(safeLocalStorage('ALViewer'))
 
-  constructor () {
+  constructor() {
     super({
       url: 'https://graphql.anilist.co',
       preferGetMethod: false,
@@ -120,7 +120,7 @@ export default new class URQLClient extends Client {
           storage,
           updates: {
             Mutation: {
-              ToggleFavourite (result: ResultOf<typeof ToggleFavourite>, args, cache) {
+              ToggleFavourite(result: ResultOf<typeof ToggleFavourite>, args, cache) {
                 debug('cache update ToggleFavourite', result, args)
                 if (!result.ToggleFavourite?.anime?.nodes) return result
                 const id = args.animeId as number
@@ -221,7 +221,7 @@ export default new class URQLClient extends Client {
             }
           },
           optimistic: {
-            ToggleFavourite ({ animeId }, cache, info) {
+            ToggleFavourite({ animeId }, cache, info) {
               debug('optimistic ToggleFavourite', animeId)
               const id = animeId as number
               const media = cache.readFragment(FullMedia, { id, __typename: 'Media' })
@@ -236,11 +236,11 @@ export default new class URQLClient extends Client {
                 __typename: 'Favourites'
               }
             },
-            DeleteMediaListEntry () {
+            DeleteMediaListEntry() {
               debug('optimistic DeleteMediaListEntry')
               return { deleted: true, __typename: 'Deleted' }
             },
-            SaveMediaListEntry (args, cache, info) {
+            SaveMediaListEntry(args, cache, info) {
               debug('optimistic SaveMediaListEntry', args)
               const id = args.mediaId as number
               const media = cache.readFragment(FullMedia, { id, __typename: 'Media' })
@@ -261,7 +261,7 @@ export default new class URQLClient extends Client {
                 __typename: 'MediaList'
               }
             },
-            ToggleLikeV2 ({ id, type }, cache, info) {
+            ToggleLikeV2({ id, type }, cache, info) {
               debug('optimistic ToggleLikeV2', id, type)
               const threadOrCommentId = id as number
               const likable = type as 'THREAD' | 'THREAD_COMMENT' | 'ACTIVITY' | 'ACTIVITY_REPLY'
@@ -288,7 +288,7 @@ export default new class URQLClient extends Client {
             MediaTitle: () => null,
             MediaCoverImage: () => null,
             AiringSchedule: () => null,
-            MediaListCollection: e => (e.user as {id: string | null}).id,
+            MediaListCollection: e => (e.user as { id: string | null }).id,
             MediaListGroup: e => e.status as string | null,
             UserAvatar: () => null,
             UserOptions: () => null,
@@ -307,7 +307,7 @@ export default new class URQLClient extends Client {
                 Authorization: `Bearer ${this.viewer.value.token}`
               })
             },
-            didAuthError (error, _operation) {
+            didAuthError(error, _operation) {
               return error.graphQLErrors.some(e => e.message === 'Invalid token')
             },
             refreshAuth: async () => {
